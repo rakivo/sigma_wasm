@@ -1,12 +1,12 @@
-mod game;
-use game::*;
 use raylib::*;
+mod funny_rect;
+use funny_rect::*;
 
 fn main() {
     unsafe {
-        game_init();
+        let mut rect = game_init();
         while !WindowShouldClose() {
-            game_frame();
+            game_frame(&mut rect);
         }
         game_over();
     }

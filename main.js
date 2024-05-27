@@ -1,7 +1,8 @@
 'use strict';
 
 const WASM_PATH = "build/wasm32-unknown-unknown/debug/ebal_wasm.wasm"
-const glfw_map = {
+const FONT_SCALE_MAGIC = 0.65;
+const GLFW_MAP = {
     "Space":          32,
     "Quote":          39,
     "Comma":          44,
@@ -165,11 +166,11 @@ let curr_pressed_key = new Set();
 
 const keyDown = (e) => {
     e.preventDefault();
-    curr_pressed_key.add(glfw_map[e.code]);
+    curr_pressed_key.add(GLFW_MAP[e.code]);
 }
 const keyUp = (e) => {
     e.preventDefault();
-    curr_pressed_key.delete(glfw_map[e.code]);
+    curr_pressed_key.delete(GLFW_MAP[e.code]);
 }
 
 const app = document.getElementById("game");
@@ -181,6 +182,8 @@ let wf = undefined;
 let quit = undefined;
 let prev = undefined;
 let targetFPS = undefined;
+
+const GetFPS = () => 1.0 / dt;
 
 WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
     "env": make_environment({
@@ -204,7 +207,6 @@ WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         },
         MeasureText: (text_ptr, fontSize) => {
-            const FONT_SCALE_MAGIC = 0.65;
             const buffer = wasm.instance.exports.memory.buffer;
             const text = cstr_by_ptr(buffer, text_ptr);
             fontSize *= FONT_SCALE_MAGIC;
@@ -212,7 +214,6 @@ WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
             return ctx.measureText(text).width;
         },
         DrawText_: (text_ptr, posX, posY, fontSize, color_ptr) => {
-            const FONT_SCALE_MAGIC = 0.65;
             const buffer = wf.memory.buffer;
             const text = cstr_by_ptr(buffer, text_ptr);
             const color = getColorFromMemory(buffer, color_ptr);
@@ -233,7 +234,6 @@ WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
         DrawLine: (startPosX, startPosY, endPosX, endPosY, color_ptr) => {
             const buffer = wf.memory.buffer;
             const color = getColorFromMemory(buffer, color_ptr);
-
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.moveTo(startPosX, startPosY);
@@ -262,6 +262,17 @@ WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
         IsWindowResized: () => false,
         WindowShouldClose: () => false,
         SetTargetFPS: (x) => targetFPS = x,
+        GetFPS: () => GetFPS(),
+        DrawFPS: (x, y) => {
+            const fontSize = 50.0 * FONT_SCALE_MAGIC;
+            const fps = GetFPS();
+            let color = "lime";                               // Good FPS
+            if ((fps < 30) && (fps >= 15)) color = "orange";  // Warning FPS
+            else if (fps < 15) color = "red";                 // Low FPS
+            ctx.fillStyle = "green";
+            ctx.font = `${fontSize}px grixel`;
+            ctx.fillText(targetFPS, x, y + fontSize);
+        },
         IsKeyDown: (key) => curr_pressed_key.has(key),
     })
 }).then(w => {
@@ -272,7 +283,7 @@ WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
     window.addEventListener("keydown", keyDown);
     window.addEventListener("keyup", keyUp);
 
-    wf.game_init();
+    let state = wf.game_init();
     const next = (timestamp) => {
         if (quit) {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -281,7 +292,7 @@ WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
         }
         dt = (timestamp - prev)/1000.0;
         prev = timestamp;
-        wf.game_frame();
+        wf.game_frame(state);
         window.requestAnimationFrame(next);
     };
     window.requestAnimationFrame((timestamp) => {

@@ -7,11 +7,13 @@ extern {
     pub fn BeginDrawing();
     pub fn ClearBackground_(_: *const Color);
     pub fn GetFrameTime() -> f32;
+    pub fn DrawFPS(_: i32, _: i32);
     pub fn DrawText_(_: *const i8, _: i32, _: i32, _: i32, _: *const Color);
     pub fn EndDrawing();
     pub fn SetExitKey(_: KeyboardKey);
     pub fn CloseWindow();
     pub fn IsKeyDown(_: KeyboardKey) -> bool;
+    pub fn GetFPS() -> i32;
 }
 
 // This functions are mandotory because without them all this won't work.
