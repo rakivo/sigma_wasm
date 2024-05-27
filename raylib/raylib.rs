@@ -1,11 +1,17 @@
-#[repr(C)]
-pub struct Color {
-    pub r: std::ffi::c_uchar,
-    pub g: std::ffi::c_uchar,
-    pub b: std::ffi::c_uchar,
-    pub a: std::ffi::c_uchar,
-}
-pub mod colors;
+mod colors;
 pub use colors::*;
-pub mod enums;
+mod enums;
 pub use enums::*;
+#[allow(unused, dead_code, non_camel_case_types, non_snake_case)]
+mod structs;
+pub use structs::*;
+#[allow(unused, dead_code, non_camel_case_types, non_snake_case)]
+#[cfg(not(feature = "web"))]
+mod functions;
+#[cfg(not(feature = "web"))]
+pub use functions::*;
+#[cfg(feature = "web")]
+#[allow(non_snake_case)]
+mod web_functions;
+#[cfg(feature = "web")]
+pub use web_functions::*;

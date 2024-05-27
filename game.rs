@@ -1,37 +1,15 @@
 extern crate raylib;
-use std::ptr::addr_of;
-use raylib::KeyboardKey as KEY;
-
-extern {
-    fn DrawRectangleRec(_: *const Rectangle, _: *const u8);
-    // fn DrawRectangle(_: f32, _: f32, _: f32, _: f32, _: *const u8);
-    fn SetTargetFPS(_: u32);
-    fn InitWindow(_: usize, _: usize, _: *const u8);
-    fn BeginDrawing();
-    fn ClearBackground(_: *const u8);
-    fn GetFrameTime() -> f32;
-    fn DrawText(_: *const u8, _: usize, _: usize, _: usize, _: *const u8);
-    fn EndDrawing();
-    fn IsKeyDown(_: KEY) -> bool;
-}
+use raylib::{*, KeyboardKey as KEY};
 
 macro_rules! cstr {
-    ($str: expr) => { format!("{}\0", $str).as_ptr() as *const u8 }
-}
-
-#[repr(C)]
-struct Rectangle {
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
+    ($str: expr) => { format!("{}\0", $str).as_ptr() as *const i8 }
 }
 
 const SPEED_BOOSTED: f32 = 1550.0;
 const SPEED_DEFAULT: f32 = 850.0;
 
-const WINDOW_WIDTH: usize = 800;
-const WINDOW_HEIGHT: usize = 600;
+const WINDOW_WIDTH: i32 = 800;
+const WINDOW_HEIGHT: i32 = 600;
 
 static mut SPEED: f32 = 850.0;
 
@@ -46,16 +24,22 @@ static mut RECT: Rectangle = Rectangle {
 pub unsafe fn game_init() {
     SetTargetFPS(144);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, cstr!("Game"));
+    SetExitKey(KEY::Q);
 }
 
 #[no_mangle]
 pub unsafe fn game_frame() {
     handle_keys();
     BeginDrawing();
-        ClearBackground(cstr!("red"));
-        DrawText(cstr!("omg tf is happening"), 250, 500, 50, cstr!("white"));
-        DrawRectangleRec(addr_of!(RECT), cstr!("black"));
+        ClearBackground(RED);
+        DrawText(cstr!("omg tf is happening"), 250, 500, 50, WHITE);
+        DrawRectangleRec(RECT, WHITE);
     EndDrawing();
+}
+
+#[no_mangle]
+pub unsafe fn game_over() {
+    CloseWindow();
 }
 
 unsafe fn handle_keys() {
@@ -66,4 +50,16 @@ unsafe fn handle_keys() {
     if IsKeyDown(KEY::A) { RECT.x -= dt*SPEED; }
     if IsKeyDown(KEY::S) { RECT.y += dt*SPEED; }
     if IsKeyDown(KEY::D) { RECT.x += dt*SPEED; }
+}
+
+#[allow(unused)]
+#[cfg(feature = "native")]
+fn main() {
+    unsafe {
+        game_init();
+        while !WindowShouldClose() {
+            game_frame();
+        }
+        game_over();
+    }
 }

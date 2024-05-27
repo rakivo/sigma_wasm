@@ -1,7 +1,9 @@
-all: raylib.wasm wasm.wasm
+BUILD_DIR_FLAG = --target-dir build
 
-raylib.wasm: raylib/raylib.rs
-	rustc --crate-type=rlib --target=wasm32-unknown-unknown $<
+all: native web
 
-wasm.wasm: lib.rs
-	rustc --crate-type=cdylib --target=wasm32-unknown-unknown --extern raylib=./libraylib.rlib -o $@ $<
+native: game.rs native.rs
+	RUSTFLAGS="-L./lib/ -lraylib" cargo build --features="native" $(BUILD_DIR_FLAG)
+
+web: game.rs
+	cargo build --features="web" --target=wasm32-unknown-unknown $(BUILD_DIR_FLAG)

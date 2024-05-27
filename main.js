@@ -1,6 +1,6 @@
 'use strict';
 
-const WASM_PATH = "./wasm.wasm"
+const WASM_PATH = "build/wasm32-unknown-unknown/debug/ebal_wasm.wasm"
 const glfw_map = {
     "Space":          32,
     "Quote":          39,
@@ -197,13 +197,13 @@ WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
             prev_pressed_key.clear();
             prev_pressed_key = new Set(curr_pressed_key);
         },
-        ClearBackground: (color_ptr) => {
+        ClearBackground_: (color_ptr) => {
             const buffer = wf.memory.buffer;
-            const color = cstr_by_ptr(buffer, color_ptr);
+            const color = getColorFromMemory(buffer, color_ptr);
             ctx.fillStyle = color;
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         },
-        MeasureText(text_ptr, fontSize) {
+        MeasureText: (text_ptr, fontSize) => {
             const FONT_SCALE_MAGIC = 0.65;
             const buffer = wasm.instance.exports.memory.buffer;
             const text = cstr_by_ptr(buffer, text_ptr);
@@ -211,11 +211,11 @@ WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
             ctx.font = `${fontSize}px grixel`;
             return ctx.measureText(text).width;
         },
-        DrawText(text_ptr, posX, posY, fontSize, color_ptr) {
+        DrawText_: (text_ptr, posX, posY, fontSize, color_ptr) => {
             const FONT_SCALE_MAGIC = 0.65;
             const buffer = wf.memory.buffer;
             const text = cstr_by_ptr(buffer, text_ptr);
-            const color = cstr_by_ptr(buffer, color_ptr);
+            const color = getColorFromMemory(buffer, color_ptr);
             fontSize *= FONT_SCALE_MAGIC;
             ctx.fillStyle = color;
             ctx.font = `${fontSize}px grixel`;
@@ -224,15 +224,15 @@ WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
                 ctx.fillText(lines[i], posX, posY + fontSize + (i * fontSize));
             }
         },
-        DrawRectangle(posX, posY, width, height, color_ptr) {
+        DrawRectangle: (posX, posY, width, height, color_ptr) => {
             const buffer = wf.memory.buffer;
-            const color = cstr_by_ptr(buffer, color_ptr);
+            const color = getColorFromMemory(buffer, color_ptr);
             ctx.fillStyle = color;
             ctx.fillRect(posX, posY, width, height);
         },
-        DrawLine(startPosX, startPosY, endPosX, endPosY, color_ptr) {
+        DrawLine: (startPosX, startPosY, endPosX, endPosY, color_ptr) => {
             const buffer = wf.memory.buffer;
-            const color = cstr_by_ptr(buffer, color_ptr);
+            const color = getColorFromMemory(buffer, color_ptr);
 
             ctx.fillStyle = color;
             ctx.beginPath();
@@ -241,18 +241,18 @@ WebAssembly.instantiateStreaming(fetch(WASM_PATH), {
             ctx.strokeStyle = color;
             ctx.stroke();
         },
-        DrawRectangleV(position_ptr, size_ptr, color_ptr) {
+        DrawRectangleV: (position_ptr, size_ptr, color_ptr) => {
             const buffer = wf.memory.buffer;
             const [x, y] = new Float32Array(buffer, position_ptr, 2);
             const [width, height] = new Float32Array(buffer, size_ptr, 2);
-            const color = cstr_by_ptr(buffer, color_ptr);
+            const color = getColorFromMemory(buffer, color_ptr);
             ctx.fillStyle = color;
             ctx.fillRect(x, y, width, height);
         },
-        DrawRectangleRec: (rec_ptr, color_ptr) => {
+        DrawRectangleRec_: (rec_ptr, color_ptr) => {
             const buffer = wf.memory.buffer;
             const [x, y, w, h] = new Float32Array(buffer, rec_ptr, 4);
-            const color = cstr_by_ptr(buffer, color_ptr);
+            const color = getColorFromMemory(buffer, color_ptr);
             ctx.fillStyle = color;
             ctx.fillRect(x, y, w, h);
         },
