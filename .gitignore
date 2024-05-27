@@ -1,6 +1,5 @@
 build
 target
-Cargo.toml
 Cargo.lock
 *.rlib
 *.wasm

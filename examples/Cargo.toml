@@ -1,0 +1,21 @@
+[package]
+name = "ebal_wasm"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+raylib = { path = "..", default-features = false, features = ["native"] }
+
+[features]
+web = ["raylib/web"]
+native = ["raylib/native"]
+
+[lib]
+crate-type = ["cdylib"]
+path = "./funny_rect.rs"
+required-features = ["web"]
+
+[[bin]]
+name = "rakivo"
+path = "./native.rs"
+required-features = ["native"]

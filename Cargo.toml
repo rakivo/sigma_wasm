@@ -1,0 +1,12 @@
+[package]
+name = "raylib"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+web = []
+native = []
+
+[lib]
+crate-type = ["rlib"]
+path = "raylib.rs"

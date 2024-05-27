@@ -1,4 +1,3 @@
-extern crate raylib;
 use raylib::{*, KeyboardKey as KEY};
 
 const SPEED_BOOSTED: f32 = 1550.0;
